@@ -18,12 +18,12 @@
 "
 "	 		let g:rainbow_active = 1
 "  	 
-"  	 		let g:rainbow_filetype_matchpairs = [
-"			\	[ '*' , [['(', ')'], ['\[', '\]'], ['{', '}']] ],
-"			\	[ '*.tex' , [['(', ')'], ['\[', '\]']] ],
-"			\	[ '*.cpp' , [['(', ')'], ['\[', '\]'], ['{', '}']] ],
-"			\	[ '*.{html,htm}' , [['(', ')'], ['\[', '\]'], ['{', '}'], ['<\a[^>]*>', '</[^>]*>']] ],
-"			\	]
+"  	 		let g:rainbow_filetype_matchpairs = {
+"			\	 '*'     : [['(', ')'], ['\[', '\]'], ['{', '}']],
+"			\	 'tex'   : [['(', ')'], ['\[', '\]']],
+"			\	 'c,cpp' : [['(', ')'], ['\[', '\]'], ['{', '}']],
+"			\	 'html'  : [['(', ')'], ['\[', '\]'], ['{', '}'], ['<\a[^>]*>', '</[^>]*>']],
+"			\	}
 "  	 
 "  	 		let g:rainbow_guifgs = ['RoyalBlue3', 'SeaGreen3', 'DarkOrange3', 'FireBrick',]
 "
@@ -43,6 +43,11 @@ let s:ctermfgs = exists('g:rainbow_ctermfgs')? g:rainbow_ctermfgs : [
 
 let s:max = has('gui_running')? len(s:guifgs) : len(s:ctermfgs)
 
+" A dictionary of filetypes and their respective parenthese regionpatterns
+let s:ftpairs = exists('g:rainbow_filetype_matchpairs')? g:rainbow_filetype_matchpairs : {
+            \ '*'    : [['(', ')'], ['\[', '\]'], ['{', '}']]
+            \ }
+
 
 " The name of the syntax region group, used in the syntax command, defining the parenthese region pattern
 let s:sgroup = 'RainbowSyntax'
@@ -50,22 +55,31 @@ let s:sgroup = 'RainbowSyntax'
 " The name of the highlight group, used in the highlight command, defining the color selection
 let s:hgroup = 'RainbowHighlight'
 
-func rainbow#load(...)
-	if exists('b:rainbow_matchpairs')
+func rainbow#load(ft)
+	
+    if exists('b:rainbow_matchpairs')
 		cal rainbow#clear()
 	endif
-	let b:rainbow_matchpairs = (a:0 < 1) ? [['(',')'],['\[','\]'],['{','}']] : a:1
-	let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=%s'
-	let str = 'TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
-	for [left , right] in b:rainbow_matchpairs
-		for id in range(1, s:max - 1)
-			exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, s:sgroup.(id+1) , str)
-		endfor
-		exe printf(cmd, s:sgroup.s:max, s:hgroup.id, left, right, s:sgroup.'1' , str)
-	endfor
-	if (match(a:000 , 'later') == -1)
-		cal rainbow#activate()
-	endif
+
+    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '')
+    if !empty(l:key)
+        let b:rainbow_matchpairs = s:ftpairs[l:key]
+    elseif has_key(s:ftpairs, '*')
+        let b:rainbow_matchpairs = s:ftpairs['*']
+    else
+        unlet b:rainbow_matchpairs
+    endif
+
+    if exists('b:rainbow_matchpairs')
+        let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=%s'
+        let str = 'TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
+        for [left , right] in b:rainbow_matchpairs
+            for id in range(1, s:max - 1)
+                exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, s:sgroup.(id+1) , str)
+            endfor
+            exe printf(cmd, s:sgroup.s:max, s:hgroup.id, left, right, s:sgroup.'1' , str)
+        endfor
+    endif
 endfunc
 
 func rainbow#clear()
@@ -77,7 +91,7 @@ endfunc
 
 func rainbow#activate()
 	if !exists('b:rainbow_matchpairs')
-		cal rainbow#load()
+		cal rainbow#load(&ft)
 	endif
 	for id in range(1 , s:max)
 		let ctermfg = s:ctermfgs[(s:max - id) % len(s:ctermfgs)]
@@ -104,15 +118,11 @@ func rainbow#toggle()
 	endif    
 endfunc
 
-if exists('g:rainbow_active') && g:rainbow_active
-	if exists('g:rainbow_filetype_matchpairs')
-		let ps = g:rainbow_filetype_matchpairs
-		for i in range(len(ps))
-			exe printf('auto bufreadpost %s call rainbow#load(ps[%d][1])' , ps[i][0] , i)
-		endfor
-	else
-		auto bufnewfile,bufreadpost * call rainbow#activate()
-	endif 
+if !empty(s:ftpairs)
+    augroup RainbowParenthesis
+        au!
+        auto filetype * call rainbow#load(&ft)
+    augroup END
 endif
 
 command! RainbowToggle call rainbow#toggle()
