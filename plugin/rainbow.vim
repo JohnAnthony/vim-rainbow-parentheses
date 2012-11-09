@@ -18,7 +18,7 @@
 "
 "	 		let g:rainbow_active = 1
 "  	 
-"  	 		let g:rainbow_load_separately = [
+"  	 		let g:rainbow_filetype_matchpairs = [
 "			\	[ '*' , [['(', ')'], ['\[', '\]'], ['{', '}']] ],
 "			\	[ '*.tex' , [['(', ')'], ['\[', '\]']] ],
 "			\	[ '*.cpp' , [['(', ')'], ['\[', '\]'], ['{', '}']] ],
@@ -43,21 +43,25 @@ let s:ctermfgs = exists('g:rainbow_ctermfgs')? g:rainbow_ctermfgs : [
 
 let s:max = has('gui_running')? len(s:guifgs) : len(s:ctermfgs)
 
+
+" The name of the syntax region group, used in the syntax command, defining the parenthese region pattern
+let s:sgroup = 'RainbowSyntax'
+
+" The name of the highlight group, used in the highlight command, defining the color selection
+let s:hgroup = 'RainbowHighlight'
+
 func rainbow#load(...)
-	if exists('b:loaded')
+	if exists('b:rainbow_matchpairs')
 		cal rainbow#clear()
 	endif
-	let b:loaded = (a:0 < 1) ? [['(',')'],['\[','\]'],['{','}']] : a:1
+	let b:rainbow_matchpairs = (a:0 < 1) ? [['(',')'],['\[','\]'],['{','}']] : a:1
 	let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=%s'
-	let str = 'TOP'
-	for each in range(1, s:max)
-		let str .= ',lv'.each
-	endfor
-	for [left , right] in b:loaded
-		for each in range(1, s:max - 1)
-			exe printf(cmd, 'lv'.each, 'lv'.each.'c', left, right, 'lv'.(each+1) , str)
+	let str = 'TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
+	for [left , right] in b:rainbow_matchpairs
+		for id in range(1, s:max - 1)
+			exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, s:sgroup.(id+1) , str)
 		endfor
-		exe printf(cmd, 'lv'.s:max, 'lv'.s:max.'c', left, right, 'lv1' , str)
+		exe printf(cmd, s:sgroup.s:max, s:hgroup.id, left, right, s:sgroup.'1' , str)
 	endfor
 	if (match(a:000 , 'later') == -1)
 		cal rainbow#activate()
@@ -65,44 +69,44 @@ func rainbow#load(...)
 endfunc
 
 func rainbow#clear()
-	unlet b:loaded
-	for each in range(1 , s:max)
-		exe 'syn clear lv'.each
+	unlet b:rainbow_matchpairs
+	for id in range(1 , s:max)
+		exe 'syn clear '.s:sgroup.id
 	endfor
 endfunc
 
 func rainbow#activate()
-	if !exists('b:loaded')
+	if !exists('b:rainbow_matchpairs')
 		cal rainbow#load()
 	endif
 	for id in range(1 , s:max)
 		let ctermfg = s:ctermfgs[(s:max - id) % len(s:ctermfgs)]
-		let guifg = s:guifgs[(s:max - id) % len(s:guifgs)]
-		exe 'hi default lv'.id.'c ctermfg='.ctermfg.' guifg='.guifg
+		let guifg   = s:guifgs[(s:max - id) % len(s:guifgs)]
+		exe 'hi default '.s:hgroup.id.' ctermfg='.ctermfg.' guifg='.guifg
 	endfor
-	let b:active = 'active'
+	let b:rainbow_active = 'active'
 endfunc
 
 func rainbow#inactivate()
-	if exists('b:active')
-		for each in range(1, s:max)
-			exe 'hi clear lv'.each.'c'
+	if exists('b:rainbow_active')
+		for id in range(1, s:max)
+			exe 'hi clear '.s:hgroup.id
 		endfor
-		unlet b:active
+		unlet b:rainbow_active
 	endif
 endfunc
 
 func rainbow#toggle()
-	if exists('b:active')
+	if exists('b:rainbow_active')
 		cal rainbow#inactivate()
 	else
 		cal rainbow#activate()
-	endif
+	endif    
 endfunc
 
 if exists('g:rainbow_active') && g:rainbow_active
-	if exists('g:rainbow_load_separately')
-		let ps = g:rainbow_load_separately
+	if exists('g:rainbow_filetype_matchpairs')
+		let ps = g:rainbow_filetype_matchpairs
 		for i in range(len(ps))
 			exe printf('auto bufreadpost %s call rainbow#load(ps[%d][1])' , ps[i][0] , i)
 		endfor
