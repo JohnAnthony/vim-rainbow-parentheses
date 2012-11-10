@@ -61,11 +61,9 @@ func rainbow#load(ft)
 		cal rainbow#clear()
 	endif
 
-    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '')
-    if !empty(l:key)
+    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '*')
+    if has_key(s:ftpairs, l:key)
         let b:rainbow_matchpairs = s:ftpairs[l:key]
-    elseif has_key(s:ftpairs, '*')
-        let b:rainbow_matchpairs = s:ftpairs['*']
     else
         unlet b:rainbow_matchpairs
     endif
