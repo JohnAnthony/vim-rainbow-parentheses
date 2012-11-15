@@ -55,42 +55,70 @@ let s:sgroup = 'RainbowSyntax'
 " The name of the highlight group, used in the highlight command, defining the color selection
 let s:hgroup = 'RainbowHighlight'
 
-func rainbow#load(ft)
-	
-    if exists('b:rainbow_matchpairs')
-		cal rainbow#clear()
-	endif
-
-    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '*')
-    if has_key(s:ftpairs, l:key)
-        let b:rainbow_matchpairs = s:ftpairs[l:key]
-    else
-        unlet b:rainbow_matchpairs
-    endif
-
-    if exists('b:rainbow_matchpairs')
-        let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=%s'
-        let str = 'TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
-        for [left , right] in b:rainbow_matchpairs
-            for id in range(1, s:max - 1)
-                exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, s:sgroup.(id+1) , str)
-            endfor
-            exe printf(cmd, s:sgroup.s:max, s:hgroup.id, left, right, s:sgroup.'1' , str)
+" Creates the Syntax Regions based on the list of match pairs
+func rainbow#loadsyntaxgroups(matchpairs)
+    let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=%s'
+    let str = 'TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
+    for [left , right] in a:matchpairs
+        for id in range(1, s:max - 1)
+            exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, s:sgroup.(id+1) , str)
         endfor
-    endif
+        exe printf(cmd, s:sgroup.s:max, s:hgroup.id, left, right, s:sgroup.'1' , str)
+    endfor
 endfunc
 
-func rainbow#clear()
-	unlet b:rainbow_matchpairs
+" Clears any syntax region created by this plugin
+func rainbow#clearsyntaxgroups()
 	for id in range(1 , s:max)
 		exe 'syn clear '.s:sgroup.id
 	endfor
 endfunc
 
+" Inserts a matchpair into the buffer's current collection of matchpairs and
+" reload the syntax regions
+func rainbow#insertmatchpairs(...)
+    if !exists('b:rainbow_matchpairs')
+        let b:rainbow_matchpairs = []
+    else
+        call rainbow#clearsyntaxgroups()
+    endif
+
+    call insert(b:rainbow_matchpairs, a:000)
+    call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)
+endfunc
+
+" Removes a matchpair from the buffer's current collection of matchpairs and
+" reloads the syntax region
+func rainbow#removematchpairs(...)
+    if exists('b:rainbow_matchpairs')
+        call rainbow#clearsyntaxgroups()
+        call filter(b:rainbow_matchpairs, 'v:val != a:000')
+        if empty(b:rainbow_matchpairs)
+            unlet b:rainbow_matchpairs
+        else
+            call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)
+        endif
+    endif
+endfunc
+
+" Attempts to populate the buffer's matchpairs list based on the filetype and
+" reloads the syntax regions
+func rainbow#loadmatchpairs(ft)
+    if exists('b:rainbow_matchpairs')
+        call rainbow#clearsyntaxgroups()
+    endif
+
+    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '*')
+    if has_key(s:ftpairs, l:key)
+        let b:rainbow_matchpairs = s:ftpairs[l:key]
+        call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)    
+    else
+        unlet b:rainbow_matchpairs
+    endif
+endfunc
+
+" Creates the highlight groups referenced by the syntax regions
 func rainbow#activate()
-	if !exists('b:rainbow_matchpairs')
-		cal rainbow#load(&ft)
-	endif
 	for id in range(1 , s:max)
 		let ctermfg = s:ctermfgs[(s:max - id) % len(s:ctermfgs)]
 		let guifg   = s:guifgs[(s:max - id) % len(s:guifgs)]
@@ -99,6 +127,7 @@ func rainbow#activate()
 	let b:rainbow_active = 'active'
 endfunc
 
+" Destroyes the highlight groups referenced by the syntax regions
 func rainbow#inactivate()
 	if exists('b:rainbow_active')
 		for id in range(1, s:max)
@@ -108,20 +137,29 @@ func rainbow#inactivate()
 	endif
 endfunc
 
+" Activates/Deactivates the Rainbow Parenthesis
 func rainbow#toggle()
 	if exists('b:rainbow_active')
-		cal rainbow#inactivate()
+		call rainbow#inactivate()
 	else
-		cal rainbow#activate()
+        " If no matchpair definition exists, try loading from the filetype
+        if !exists('b:rainbow_matchpairs')
+            call rainbow#loadmatchpairs(&ft)
+        endif
+		call rainbow#activate()
 	endif    
 endfunc
 
+" Autocommand to update the matchpairs based on filetype
 if !empty(s:ftpairs)
     augroup RainbowParenthesis
         au!
-        auto filetype * call rainbow#load(&ft)
+        auto filetype * call rainbow#loadmatchpairs(&ft)
     augroup END
 endif
 
-command! RainbowToggle call rainbow#toggle()
+" Plugin Commands
+command!          RainbowToggle call rainbow#toggle()
+command! -nargs=+ RainbowInsert call rainbow#insertmatchpairs(<f-args>)
+command! -nargs=+ RainbowRemove call rainbow#removematchpairs(<f-args>)
 
