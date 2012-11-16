@@ -57,19 +57,17 @@ let s:hgroup = 'RainbowHighlight'
 
 " Creates the Syntax Regions based on the list of match pairs
 func rainbow#loadsyntaxgroups(matchpairs)
-    let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=%s'
-    let str = 'TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
+    let cmd = 'syn region %s matchgroup=%s start=+%s+ end=+%s+ containedin=%s contains=TOP,' . join(map(range(1, s:max), 's:sgroup . v:val'), ',')
     for [left , right] in a:matchpairs
-        for id in range(1, s:max - 1)
-            exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, s:sgroup.(id+1) , str)
+        for id in range(1, s:max)
+            exe printf(cmd, s:sgroup.id, s:hgroup.id, left, right, id < s:max ? s:sgroup.(id+1) : s:sgroup."1")
         endfor
-        exe printf(cmd, s:sgroup.s:max, s:hgroup.id, left, right, s:sgroup.'1' , str)
     endfor
 endfunc
 
 " Clears any syntax region created by this plugin
 func rainbow#clearsyntaxgroups()
-	for id in range(1 , s:max)
+	for id in range(1, s:max)
 		exe 'syn clear '.s:sgroup.id
 	endfor
 endfunc
@@ -124,22 +122,31 @@ func rainbow#activate()
 		let guifg   = s:guifgs[(s:max - id) % len(s:guifgs)]
 		exe 'hi default '.s:hgroup.id.' ctermfg='.ctermfg.' guifg='.guifg
 	endfor
-	let b:rainbow_active = 'active'
+	let g:rainbow_active = 'active'
+
+    if !empty(s:ftpairs)
+        augroup RainbowParenthesis
+            au!
+            auto filetype * call rainbow#loadmatchpairs(&ft)
+        augroup END        
+    endif
 endfunc
 
 " Destroyes the highlight groups referenced by the syntax regions
 func rainbow#inactivate()
-	if exists('b:rainbow_active')
+	if exists('g:rainbow_active')
 		for id in range(1, s:max)
 			exe 'hi clear '.s:hgroup.id
 		endfor
-		unlet b:rainbow_active
+		unlet g:rainbow_active
 	endif
+
+    augroup! RainbowParenthesis
 endfunc
 
 " Activates/Deactivates the Rainbow Parenthesis
 func rainbow#toggle()
-	if exists('b:rainbow_active')
+	if exists('g:rainbow_active')
 		call rainbow#inactivate()
 	else
         " If no matchpair definition exists, try loading from the filetype
@@ -149,14 +156,6 @@ func rainbow#toggle()
 		call rainbow#activate()
 	endif    
 endfunc
-
-" Autocommand to update the matchpairs based on filetype
-if !empty(s:ftpairs)
-    augroup RainbowParenthesis
-        au!
-        auto filetype * call rainbow#loadmatchpairs(&ft)
-    augroup END
-endif
 
 " Plugin Commands
 command!          RainbowToggle call rainbow#toggle()
