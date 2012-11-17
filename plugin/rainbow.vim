@@ -134,16 +134,16 @@ func rainbow#activate()
         let guifg   = s:guifgs[(s:max - id) % len(s:guifgs)]
         exe 'hi default '.s:hgroup.id.' ctermfg='.ctermfg.' guifg='.guifg
     endfor
-    let g:rainbow_active = 'active'
+    let g:rainbow_active = 1
 
     if !empty(s:ftpairs)
         augroup RainbowParenthesis
             au!
             if has_key(s:ftpairs, '*')
-                auto filetype * call rainbow#loadmatchpairsforfiletype(&ft)
+                auto syntax * call rainbow#loadmatchpairsforfiletype(&ft)
             else
                 for ft in keys(s:ftpairs)
-                    exe 'auto filetype '. ft . ' call rainbow#loadmatchpairs('. string(s:ftpairs[ft]) .')'
+                    exe 'auto syntax'. ft . ' call rainbow#loadmatchpairs('. string(s:ftpairs[ft]) .')'
                 endfor
             endif
         augroup END
@@ -167,7 +167,6 @@ func rainbow#toggle()
     if exists('g:rainbow_active')
         call rainbow#inactivate()
     else
-        " BufDo call rainbow#activatebuffer()
         " If no matchpair definition exists, try loading from the filetype
         let origin = bufnr("%")
         for b in filter(range(1, bufnr('$')), 'buflisted(v:val) && empty(getbufvar(v:val, "rainbow_matchpairs"))')
@@ -184,3 +183,7 @@ command!          RainbowToggle call rainbow#toggle()
 command! -nargs=+ RainbowInsert call rainbow#insertmatchpairs(<f-args>)
 command! -nargs=+ RainbowRemove call rainbow#removematchpairs(<f-args>)
 
+" Initial Plugin State
+if exists("g:rainbow_active") && g:rainbow_active
+	call rainbow#toggle()
+endif
