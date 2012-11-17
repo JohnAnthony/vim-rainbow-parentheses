@@ -4,48 +4,48 @@
 "Author: luochen1990
 "Last Edited: 2012 Oct 28
 "Simple Configuration:
-"	first, put "rainbow.vim"(this file) to dir vim73/plugin or vimfiles/plugin
-"	second, add the follow sentence to your .vimrc or _vimrc :
+"    first, put "rainbow.vim"(this file) to dir vim73/plugin or vimfiles/plugin
+"    second, add the follow sentence to your .vimrc or _vimrc :
 "
-"	 		let g:rainbow_active = 1
+"             let g:rainbow_active = 1
 "
-"	third, restart your vim and enjoy coding.
+"    third, restart your vim and enjoy coding.
 "Advanced Configuration:
-"	an advanced configuration allows you to define what parentheses to use 
-"	for each type of file . you can also determine the colors of your 
-"	parentheses by this way.
-"		e.g. this is an advanced config (add these sentences to your vimrc):
+"    an advanced configuration allows you to define what parentheses to use
+"    for each type of file . you can also determine the colors of your
+"    parentheses by this way.
+"        e.g. this is an advanced config (add these sentences to your vimrc):
 "
-"	 		let g:rainbow_active = 1
-"  	 
-"  	 		let g:rainbow_filetype_matchpairs = {
-"			\	 '*'     : [['(', ')'], ['\[', '\]'], ['{', '}']],
-"			\	 'tex'   : [['(', ')'], ['\[', '\]']],
-"			\	 'c,cpp' : [['(', ')'], ['\[', '\]'], ['{', '}']],
-"			\	 'html'  : [['(', ')'], ['\[', '\]'], ['{', '}'], ['<\a[^>]*>', '</[^>]*>']],
-"			\	}
-"  	 
-"  	 		let g:rainbow_guifgs = ['RoyalBlue3', 'SeaGreen3', 'DarkOrange3', 'FireBrick',]
+"               let g:rainbow_active = 1
+"
+"               let g:rainbow_filetype_matchpairs = {
+"            \     '*'     : [['(', ')'], ['\[', '\]'], ['{', '}']],
+"            \     'tex'   : [['(', ')'], ['\[', '\]']],
+"            \     'c,cpp' : [['(', ')'], ['\[', '\]'], ['{', '}']],
+"            \     'html'  : [['(', ')'], ['\[', '\]'], ['{', '}'], ['<\a[^>]*>', '</[^>]*>']],
+"            \    }
+"
+"               let g:rainbow_guifgs = ['RoyalBlue3', 'SeaGreen3', 'DarkOrange3', 'FireBrick',]
 "
 "User Command:
-"	:RainbowToggle		--you can use it to toggle this plugin.
+"    :RainbowToggle        --you can use it to toggle this plugin.
 
 
 let s:guifgs = exists('g:rainbow_guifgs')? g:rainbow_guifgs : [
-			\ 'DarkOrchid3', 'RoyalBlue3', 'SeaGreen3',
-			\ 'DarkOrange3', 'FireBrick', 
-			\ ]
+            \ 'DarkOrchid3', 'RoyalBlue3', 'SeaGreen3',
+            \ 'DarkOrange3', 'FireBrick',
+            \ ]
 
 let s:ctermfgs = exists('g:rainbow_ctermfgs')? g:rainbow_ctermfgs : [
-			\ 'darkgray', 'Darkblue', 'darkmagenta', 
-			\ 'darkcyan', 'darkred', 'darkgreen',
-			\ ]
+            \ 'darkgray', 'Darkblue', 'darkmagenta',
+            \ 'darkcyan', 'darkred', 'darkgreen',
+            \ ]
 
 let s:max = has('gui_running')? len(s:guifgs) : len(s:ctermfgs)
 
 " A dictionary of filetypes and their respective parenthese regionpatterns
 let s:ftpairs = exists('g:rainbow_filetype_matchpairs')? g:rainbow_filetype_matchpairs : {
-			\	 '*'     : [['(', ')'], ['\[', '\]'], ['{', '}']]
+            \     '*'     : [['(', ')'], ['\[', '\]'], ['{', '}']]
             \ }
 
 
@@ -67,9 +67,9 @@ endfunc
 
 " Clears any syntax region created by this plugin
 func rainbow#clearsyntaxgroups()
-	for id in range(1, s:max)
-		exe 'syn clear '.s:sgroup.id
-	endfor
+    for id in range(1, s:max)
+        exe 'syn clear '.s:sgroup.id
+    endfor
 endfunc
 
 " Inserts a matchpair into the buffer's current collection of matchpairs and
@@ -113,7 +113,7 @@ func rainbow#loadmatchpairsforfiletype(ft)
     call rainbow#loadmatchpairs( has_key(s:ftpairs, l:key) ? s:ftpairs[l:key] : [])
 endfunc
 
-" Load the syntax region from the matchpairs 
+" Load the syntax region from the matchpairs
 func rainbow#loadmatchpairs(matchpairs)
     if exists('b:rainbow_matchpairs')
         call rainbow#clearsyntaxgroups()
@@ -123,18 +123,18 @@ func rainbow#loadmatchpairs(matchpairs)
         unlet! b:rainbow_matchpairs
     else
         let b:rainbow_matchpairs = a:matchpairs
-        call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)    
+        call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)
     endif
 endfunc
 
 " Creates the highlight groups referenced by the syntax regions
 func rainbow#activate()
-	for id in range(1 , s:max)
-		let ctermfg = s:ctermfgs[(s:max - id) % len(s:ctermfgs)]
-		let guifg   = s:guifgs[(s:max - id) % len(s:guifgs)]
-		exe 'hi default '.s:hgroup.id.' ctermfg='.ctermfg.' guifg='.guifg
-	endfor
-	let g:rainbow_active = 'active'
+    for id in range(1 , s:max)
+        let ctermfg = s:ctermfgs[(s:max - id) % len(s:ctermfgs)]
+        let guifg   = s:guifgs[(s:max - id) % len(s:guifgs)]
+        exe 'hi default '.s:hgroup.id.' ctermfg='.ctermfg.' guifg='.guifg
+    endfor
+    let g:rainbow_active = 'active'
 
     if !empty(s:ftpairs)
         augroup RainbowParenthesis
@@ -146,27 +146,27 @@ func rainbow#activate()
                     exe 'auto filetype '. ft . ' call rainbow#loadmatchpairs('. string(s:ftpairs[ft]) .')'
                 endfor
             endif
-        augroup END        
+        augroup END
     endif
 endfunc
 
 " Destroyes the highlight groups referenced by the syntax regions
 func rainbow#inactivate()
-	if exists('g:rainbow_active')
-		for id in range(1, s:max)
-			exe 'hi clear '.s:hgroup.id
-		endfor
-		unlet g:rainbow_active
-	endif
+    if exists('g:rainbow_active')
+        for id in range(1, s:max)
+            exe 'hi clear '.s:hgroup.id
+        endfor
+        unlet g:rainbow_active
+    endif
 
     augroup! RainbowParenthesis
 endfunc
 
 " Activates/Deactivates the Rainbow Parenthesis
 func rainbow#toggle()
-	if exists('g:rainbow_active')
-		call rainbow#inactivate()
-	else
+    if exists('g:rainbow_active')
+        call rainbow#inactivate()
+    else
         " BufDo call rainbow#activatebuffer()
         " If no matchpair definition exists, try loading from the filetype
         let origin = bufnr("%")
@@ -175,8 +175,8 @@ func rainbow#toggle()
             call rainbow#activatebuffer()
         endfor
         exe "buffer ". l:origin
-		call rainbow#activate()
-	endif    
+        call rainbow#activate()
+    endif
 endfunc
 
 " Plugin Commands
