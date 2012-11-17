@@ -45,7 +45,7 @@ let s:max = has('gui_running')? len(s:guifgs) : len(s:ctermfgs)
 
 " A dictionary of filetypes and their respective parenthese regionpatterns
 let s:ftpairs = exists('g:rainbow_filetype_matchpairs')? g:rainbow_filetype_matchpairs : {
-            \ '*'    : [['(', ')'], ['\[', '\]'], ['{', '}']]
+			\	 '*'     : [['(', ')'], ['\[', '\]'], ['{', '}']]
             \ }
 
 
@@ -101,17 +101,29 @@ endfunc
 
 " Attempts to populate the buffer's matchpairs list based on the filetype and
 " reloads the syntax regions
-func rainbow#loadmatchpairs(ft)
+func rainbow#activatebuffer()
+    if !exists("b:rainbow_matchpairs")
+        call rainbow#loadmatchpairsforfiletype(&ft)
+    endif
+endfunc
+
+" Load the syntax region from the matchpairs associated with a filetype
+func rainbow#loadmatchpairsforfiletype(ft)
+    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '*')
+    call rainbow#loadmatchpairs( has_key(s:ftpairs, l:key) ? s:ftpairs[l:key] : [])
+endfunc
+
+" Load the syntax region from the matchpairs 
+func rainbow#loadmatchpairs(matchpairs)
     if exists('b:rainbow_matchpairs')
         call rainbow#clearsyntaxgroups()
     endif
 
-    let key = get(filter(keys(s:ftpairs), 'v:val =~ ''\<'.a:ft.'\>'''), 0, '*')
-    if has_key(s:ftpairs, l:key)
-        let b:rainbow_matchpairs = s:ftpairs[l:key]
-        call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)    
+    if empty(a:matchpairs)
+        unlet! b:rainbow_matchpairs
     else
-        unlet b:rainbow_matchpairs
+        let b:rainbow_matchpairs = a:matchpairs
+        call rainbow#loadsyntaxgroups(b:rainbow_matchpairs)    
     endif
 endfunc
 
@@ -127,7 +139,13 @@ func rainbow#activate()
     if !empty(s:ftpairs)
         augroup RainbowParenthesis
             au!
-            auto filetype * call rainbow#loadmatchpairs(&ft)
+            if has_key(s:ftpairs, '*')
+                auto filetype * call rainbow#loadmatchpairsforfiletype(&ft)
+            else
+                for ft in keys(s:ftpairs)
+                    exe 'auto filetype '. ft . ' call rainbow#loadmatchpairs('. string(s:ftpairs[ft]) .')'
+                endfor
+            endif
         augroup END        
     endif
 endfunc
@@ -149,10 +167,14 @@ func rainbow#toggle()
 	if exists('g:rainbow_active')
 		call rainbow#inactivate()
 	else
+        " BufDo call rainbow#activatebuffer()
         " If no matchpair definition exists, try loading from the filetype
-        if !exists('b:rainbow_matchpairs')
-            call rainbow#loadmatchpairs(&ft)
-        endif
+        let origin = bufnr("%")
+        for b in filter(range(1, bufnr('$')), 'buflisted(v:val) && empty(getbufvar(v:val, "rainbow_matchpairs"))')
+            exe "buffer ". b
+            call rainbow#activatebuffer()
+        endfor
+        exe "buffer ". l:origin
 		call rainbow#activate()
 	endif    
 endfunc
