@@ -1,0 +1,178 @@
+*rainbow.txt*   Highlight matching parentheses with multiple colors.
+
+For instructions on installing this file, type
+	:help rainbow-install
+inside Vim.
+
+For Vim version 7.0.  Last change:  2012 Nov 11
+
+
+		  VIM REFERENCE MANUAL    by D Barsam
+
+*rainbow* *rainbow.vim*
+
+1. Highlighting matching parentheses			|rainbow-intro|
+2. History						|rainbow-history|
+3. Acknowledgements					|rainbow-acknowledgements|
+4. Installation						|rainbow-install|
+4. Activation						|rainbow-activation|
+5. Configuration					|rainbow-configuration|
+6. Known Bugs and Limitations				|rainbow-bugs|
+
+The functionality mentioned here is a plugin, see |add-plugin|.
+This plugin is only available if 'compatible' is not set.
+You can avoid loading this plugin by setting the "loaded_rainbow" variable
+in your |vimrc| file: >
+	:let loaded_rainbow = 1
+
+{Vi does not have any of this}
+
+==============================================================================
+1. Highlighting matching parentheses				*rainbow-intro* {{{1
+
+Rainbow Parentheses is a plugin that uses color to help identify matching
+parentheses and other paired delimiters according to their depth by using a
+different color for each successive level.  
+
+The plugin provided the following features:
+	1. Infinite depth.
+	2. Customization of the colors spectrum used to denote depth.
+	3. |Filetype| specialization.
+
+==============================================================================
+2. History							*rainbow-history* {{{1
+
+This version was forked from Luo Chen's Rainbow Parentheses Improved and is
+currently maintained on github at https://github.com/dbarsam/vim-rainbow-parentheses.
+
+==============================================================================
+3. Acknowledgements						*rainbow-acknowledgements* {{{1
+
+Rainbow Parentheses is a feature that has been implemented nd re-implemenented
+for vim before. This plugin modifies the techniques found in the follow
+plugins based on personal work flow and really doesn't add anything new.
+
+The following is a list of other plugins that perform the same functionality
+and may or may not have influenced this plugin:
+	* Luo Chen (http://www.vim.org/scripts/script.php?script_id=4176)
+	* Kien et al. (https://github.com/kien/rainbow_parentheses.vim)
+	* Martin Krischik (http://www.vim.org/scripts/script.php?script_id=1561)
+	* John Gilmore (http://www.vim.org/scripts/script.php?script_id=1230)
+
+==============================================================================
+4. Installation							*rainbow-install* {{{1
+
+You can use this script as a plugin by copying the various components to their
+respective directory.  See |add-global-plugin| for instructions.
+
+								*rainbow-github*
+
+If you use a bundle manager such as pathogen or vundle, you can use this plugin
+via github: https://github.com/dbarsam/vim-rainbow-parentheses.git
+
+==============================================================================
+5. Activation							*rainbow-activation* {{{1
+
+Activation for Rainbow Parentheses is a two step process that:
+	1. Requires a global activation of the Rainbow Parentheses feature
+	   across all buffers.  This state is stored in the |g:rainbow_activate|
+	   variable.
+	2. Requires a local definition of the delimiters to be used by the
+	   Rainbow Parentheses feature.  This state is stored in the 
+	   |b:rainbow_matchpairs| variable.
+
+==============================================================================
+6. Configuration						*rainbow-configuration* {{{1
+
+								*rainbow-activate* *g:rainbow_activate*
+The variable |g:rainbow_activate| stores the plugin's activity state.  If you >
+	let g:rainbow_activate = 1
+in your vimrc, the plugin will be active from startup.  However, to enable or
+disable the plugin after startup, it is recommended that you use the
+|RainbowToggle| command.
+
+								*rainbow-matchpairs* *b:rainbow_matchpairs*
+The variable |b:rainbow_matchpairs| stores the plugin's delimiter definition for
+the buffer.  This definition is stored as a list of matchpair, which are also
+stored as a list.  For example, >
+	let b:rainbow_matchpairs = [['(', ')'], ['\[', '\]'], ['{', '}']]
+is a valid format, defining the delimiter pairs '()', '[]', '{}' for the
+current buffer.  To manipulate the |b:rainbow_matchpairs| variable for the
+current buffer it is recommended to use the |RainbowInsert| or the |RainbowRemove|
+commands.
+
+								*rainbow-filetypes* *g:rainbow_filetype_matchpairs*
+
+The variable |g:rainbow_filetype_matchpairs| stores the plugin's filetype delimiter
+specialization.  This definition is stored as a dictionary matching a vim |filetype|
+string to a rainbow_matchpair definition.  For example, >
+	let g:rainbow_filetype_matchpairs = [
+	\[ '*'         , [['(', ')'], ['\[', '\]'], ['{', '}']] ],
+	\[ 'tex'       , [['(', ')'], ['\[', '\]']] ],
+	\[ 'c,cpp,cs'  , [['(', ')'], ['\[', '\]'], ['{', '}']] ],
+	\[ 'html'      , [['(', ')'], ['\[', '\]'], ['{', '}'], ['<\a[^>]*>', '</[^>]*>']] ],
+	\]
+	let b:rainbow_buffer = [['(', ')'], ['\[', '\]'], ['{', '}']]
+is a valid format, defining the pairs delimiter'()', '[]', '{}'.
+
+								*rainbow-star*
+
+To allow a general case for filetype specification, Rainbow Parentheses recognizes
+the '*' as a fake-filetype.  If the plugin is unable to match the filetype and the
+'*' fake-filetype is defined, the plugin will the delimiter definition stored under
+the '*' entry.
+
+								*rainbow-colors*
+
+The plugin defines two list |g:rainbow_guifgs| and |g:rainbow_ctermfg| to
+define the colors used to denote the parentheses depth.  If the depth exceeds
+the number of colors in the list the plugin cycle through the list of colors.
+
+								*rainbow-guifgs* *g:rainbow_guifgs*
+
+The variable |g:rainbow_guifgs| is a list of color strings defined in |rgb.txt|
+used to denote depth in gui instances of vim. The value in the list is passed
+to the |highlight-guifg| parameter of the |highlight| command.
+
+								*rainbow-ctermfgs* *g:rainbow_ctermfgs*
+
+The variable |g:rainbow_ctermfgs| is a list of color strings defined in |rgb.txt|
+used to denote depth in color terminal instances of vim. The value in the list
+is passed to the |highlight-ctermfg| parameter of the |highlight| command.
+
+								*g:rainbow_sgroup*
+
+The variable |g:rainbow_sgroup| defines the name used by the plugin to create
+syntax regions that define the delimiter pairs defined in|b:rainbow_matchpairs|.
+
+								*g:rainbow_hgroup*
+
+The variable |g:rainbow_hgroup| defines the name used by the plugin to create
+highlight group that define the colors used by the delimiter pairs.
+
+==============================================================================
+7. Commands							*rainbow-commands* {{{1
+
+								*RainbowToggle*
+
+|RainbowToggle| toggles the Rainbow Parentheses feature.
+
+								*RainbowInsert*
+
+|RainbowInsert| injects delimiters into the current buffer's delimiter list.
+The current buffer delimiter list is stored in |b:rainbow_matchpairs|so any
+change will be lost when the variable is deleted with the buffer.
+
+								*RainbowRemove*
+|RainbowRemove| injects delimiters into the current buffer's delimiter list.
+The current buffer delimiter list is stored in |b:rainbow_matchpairs|so any
+change will be lost when the variable is deleted with the buffer.
+
+==============================================================================
+8. Bugs								*rainbow-bugs* {{{1
+
+:help help*todo
+
+==============================================================================
+vim:tw=78:fo=tcq2:ts=8:ft=help:fdm=marker:
+
