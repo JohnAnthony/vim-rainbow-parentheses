@@ -160,18 +160,17 @@ highlight group that define the colors used by the delimiter pairs.
 								*RainbowInsert*
 
 |RainbowInsert| injects delimiters into the current buffer's delimiter list.
-The current buffer delimiter list is stored in |b:rainbow_matchpairs|so any
+The current buffer delimiter list is stored in |b:rainbow_matchpairs| so any
 change will be lost when the variable is deleted with the buffer.
 
 								*RainbowRemove*
 |RainbowRemove| injects delimiters into the current buffer's delimiter list.
-The current buffer delimiter list is stored in |b:rainbow_matchpairs|so any
+The current buffer delimiter list is stored in |b:rainbow_matchpairs| so any
 change will be lost when the variable is deleted with the buffer.
 
 ==============================================================================
 8. Bugs								*rainbow-bugs* {{{1
 
-:help help*todo
 
 ==============================================================================
 vim:tw=78:fo=tcq2:ts=8:ft=help:fdm=marker:
