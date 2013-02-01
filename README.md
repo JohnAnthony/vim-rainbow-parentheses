@@ -13,9 +13,14 @@ This started out as a minor mirroring of Luo Chen's [plugin](http://www.vim.org/
 
 The following is a list of other plugins that perform the same functionality and may or may not have influenced this plugin:
 
+* Francisco Lopes - [Rainbow Parentheses Improved (Github Fork of Luo Chen)](https://github.com/oblitum/rainbow)
 * Luo Chen - [Rainbow Parentheses Improved](http://www.vim.org/scripts/script.php?script_id=4176)
 * Kien et al. - [Better Rainbow Parentheses](https://github.com/kien/rainbow_parentheses.vim)
 * Martin Krischik - [Rainbow Parenthesis Bundle](http://www.vim.org/scripts/script.php?script_id=1561)
 * John Gilmore - [Rainbow Parenthesis](http://www.vim.org/scripts/script.php?script_id=1230)
 * Bram Moolenaar - [Vim Help](http://vimdoc.sourceforge.net/htmldoc/usr_44.html)
+
+The following is a useful list of discussions related to the functionality of the plugin:
+* [braces and operators coloring in vim for c++?](http://stackoverflow.com/questions/1199267/braces-and-operators-coloring-in-vim-for-c)
+
 

@@ -9,8 +9,10 @@
 
 " Plugin Commands
 command!          RainbowToggle call rainbow#toggle()
-command! -nargs=+ RainbowInsert call rainbow#insertmatchpairs(<f-args>)
-command! -nargs=+ RainbowRemove call rainbow#removematchpairs(<f-args>)
+command! -nargs=+ RainbowOperatorInsert  call rainbow#insertoperators(<f-args>)
+command! -nargs=+ RainbowOperatorRemove  call rainbow#removeoperators(<f-args>)
+command! -nargs=+ RainbowMatchPairInsert call rainbow#insertmatchpairs(<f-args>)
+command! -nargs=+ RainbowMatchPairRemove call rainbow#removematchpairs(<f-args>)
 
 " Initiate the Plugin State
 if exists("g:rainbow_active") && g:rainbow_active
