@@ -15,6 +15,6 @@ command! -nargs=+ RainbowMatchPairInsert call rainbow#insertmatchpairs(<f-args>)
 command! -nargs=+ RainbowMatchPairRemove call rainbow#removematchpairs(<f-args>)
 
 " Initiate the Plugin State
-if exists("g:rainbow_active") && g:rainbow_active
+if exists("g:rainbow_activate") && g:rainbow_activate
 	call rainbow#toggle()
 endif
